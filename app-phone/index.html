@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controlo Remoto Nativo</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #111; color: #fff; padding: 20px; user-select: none; }
+        #touchpad { width: 100%; height: 350px; background: #222; border: 3px solid #00bcd4; border-radius: 10px; margin-top: 20px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #aaa; touch-action: none; }
+        #touchpad:active { background: #2a2a2a; }
+    </style>
+</head>
+<body>
+
+    <h1>Touchpad Remoto</h1>
+    <p>Arraste o dedo no quadrado abaixo para mover o rato do PC real.</p>
+    
+    <div id="touchpad">Arraste o dedo aqui</div>
+
+    <script>
+        const touchpad = document.getElementById('touchpad');
+        let ultimaX = 0;
+        let ultimaY = 0;
+        let aMover = false;
+
+        // Função simplificada para enviar os movimentos em segundo plano (Fetch API)
+        function enviarComando(acao, x, y) {
+            fetch(`/comando?acao=${acao}&x=${x}&y=${y}`).catch(() => {});
+        }
+
+        // Eventos Touch (Para o Telemóvel)
+        touchpad.addEventListener('touchstart', (e) => {
+            const toque = e.touches[0];
+            ultimaX = toque.clientX;
+            ultimaY = toque.clientY;
+            aMover = true;
+        });
+
+        touchpad.addEventListener('touchmove', (e) => {
+            if (!aMover) return;
+            const toque = e.touches[0];
+            
+            // Calcula a distância que o dedo percorreu
+            let difX = Math.round((toque.clientX - ultimaX) * 1.8);
+            let difY = Math.round((toque.clientY - ultimaY) * 1.8);
+
+            if (difX !== 0 || difY !== 0) {
+                enviarComando('mover', difX, difY);
+                ultimaX = toque.clientX;
+                ultimaY = toque.clientY;
+            }
+        });
+
+        touchpad.addEventListener('touchend', () => {
+            aMover = false;
+        });
+
+        // Toque rápido funciona como clique (pressiona a tecla Espaço/Click no PC)
+        touchpad.addEventListener('click', () => {
+            enviarComando('clique', 0, 0);
+        });
+    </script>
+</body>
+</html>
